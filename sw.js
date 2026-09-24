@@ -8,7 +8,7 @@
 // akan otomatis menghapus cache versi lama dan mengambil ulang semua file.
 // ===================================================================
 
-const CACHE_VERSION = 'v13';
+const CACHE_VERSION = 'v1';
 const CACHE_NAME = `kargo-kilat-lite-cache-${CACHE_VERSION}`;
 
 const ASSETS_TO_CACHE = [
