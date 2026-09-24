@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./assets/kargo-kilat-logo.png">
+<title>Kargo Kilat</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: { DEFAULT: '#141414', deep: '#000000' },
+          amber: { DEFAULT: '#FFC700', deep: '#D9A600' },
+          kilat: { bg: '#FFFFFF', line: '#E5E5E5' },
+        },
+        fontFamily: {
+          display: ['Sora', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ================= SPLASH ================= -->
+  <section id="screen-splash" class="screen active splash-screen">
+    <img src="./assets/kargo-kilat-splash.png" alt="Kargo Kilat — Belanja sampai hitungan menit" class="splash-image">
+  </section>
+
+  <!-- ================= LOGIN ================= -->
+  <section id="screen-login" class="screen login-screen">
+    <div class="login-hero">
+      <img src="./assets/kargo-kilat-logo.png" alt="Kargo Kilat" class="brand-logo">
+      <p class="login-tagline">Belanja sampai hitungan menit!</p>
+    </div>
+
+    <div class="login-sheet">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="nama@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Minimal 6 karakter">
+      </div>
+
+      <p id="login-error" class="form-error" hidden></p>
+
+      <button id="btn-login" class="primary-btn">Masuk</button>
+
+      <p class="switch-text">
+        Belum punya akun? <a href="#" id="link-to-register">Daftar di sini</a>
+      </p>
+
+      <button id="btn-install-app" class="install-btn" hidden>
+        <i>⬇</i> Install Aplikasi
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= REGISTER ================= -->
+  <section id="screen-register" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-login">←</button>
+      <h1 class="location">Buat Akun</h1>
+    </header>
+
+    <p class="section-title">Daftar sebagai</p>
+    <div class="role-toggle" id="register-role-toggle">
+      <button class="role-btn active" data-role="BUYER">Pembeli</button>
+      <button class="role-btn" data-role="SELLER">Penjual</button>
+    </div>
+
+    <div id="register-fields-buyer" class="register-fields">
+      <div class="form-group">
+        <label>Nama</label>
+        <input type="text" id="reg-buyer-name" placeholder="Nama lengkap">
+      </div>
+      <div class="form-group">
+        <label>No. HP</label>
+        <input type="tel" id="reg-buyer-phone" placeholder="08xxxxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-buyer-email" placeholder="nama@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-buyer-password" placeholder="Minimal 6 karakter">
+      </div>
+    </div>
+
+    <div id="register-fields-seller" class="register-fields" hidden>
+      <div class="form-group">
+        <label>Nama Toko</label>
+        <input type="text" id="reg-seller-store" placeholder="Contoh: Kargo Kilat - Kenanga">
+      </div>
+      <div class="form-group">
+        <label>Kategori Toko</label>
+        <select id="reg-seller-category">
+          <option value="">Pilih kategori</option>
+          <option value="warung">Warung</option>
+          <option value="resto">Resto</option>
+          <option value="toko">Toko</option>
+          <option value="apotek">Apotek</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nama Pemilik</label>
+        <input type="text" id="reg-seller-owner" placeholder="Nama lengkap pemilik">
+      </div>
+      <div class="form-group">
+        <label>Alamat</label>
+        <input type="text" id="reg-seller-address" placeholder="Alamat toko / dark store">
+      </div>
+      <div class="form-group">
+        <label>No. HP</label>
+        <input type="tel" id="reg-seller-phone" placeholder="08xxxxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-seller-email" placeholder="nama@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-seller-password" placeholder="Minimal 6 karakter">
+      </div>
+    </div>
+
+    <p id="register-error" class="form-error" hidden></p>
+
+    <button id="btn-register" class="primary-btn">Daftar</button>
+
+    <p class="switch-text">
+      Sudah punya akun? <a href="#" id="link-to-login">Masuk di sini</a>
+    </p>
+  </section>
+
+  <!-- ================= DASHBOARD ================= -->
+  <section id="screen-dashboard" class="screen dashboard-screen">
+
+    <!-- Header: tidak ikut ter-scroll (dari profil sampai kolom pencarian) -->
+    <div class="dashboard-header">
+      <header class="topbar">
+        <button class="location-block" id="btn-dashboard-location">
+          <span class="location-pin">📍</span>
+          <span>
+            <p class="eyebrow" id="dashboard-eyebrow">Selamat datang</p>
+            <h1 class="location" id="dashboard-greeting">Hello, Pengguna</h1>
+          </span>
+        </button>
+        <button class="avatar-btn" id="btn-open-profile" aria-label="Profil">
+          <span id="avatar-initial">P</span>
+        </button>
+      </header>
+
+      <div class="search-bar" id="dashboard-search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="dashboard-search" placeholder="Cari warung, resto, produk...">
+      </div>
+    </div>
+
+    <!-- Konten: mulai dari banner promo, bisa digeser/scroll -->
+    <div class="dashboard-scroll">
+      <div class="ad-banner">
+        <p class="ad-eyebrow" id="ad-banner-eyebrow">Promo hari ini</p>
+        <p class="ad-title" id="ad-banner-title">Gratis ongkir untuk pesanan pertama kamu</p>
+      </div>
+
+      <!-- Konten khusus Pembeli -->
+      <div id="buyer-dashboard-content">
+        <p class="section-title">Kategori</p>
+        <div class="category-grid four">
+          <button class="category-tile" data-category="warung">
+            <span class="category-icon tint-amber">🏪</span>
+            <span class="category-label">Warung</span>
+          </button>
+          <button class="category-tile" data-category="resto">
+            <span class="category-icon tint-red">🍜</span>
+            <span class="category-label">Resto</span>
+          </button>
+          <button class="category-tile" data-category="toko">
+            <span class="category-icon tint-blue">🛒</span>
+            <span class="category-label">Toko</span>
+          </button>
+          <button class="category-tile" data-category="apotek">
+            <span class="category-icon tint-green">💊</span>
+            <span class="category-label">Apotek</span>
+          </button>
+        </div>
+
+        <button id="tile-buyer-orders" class="dashboard-menu-btn full">🧾 Pesanan Saya</button>
+
+        <div class="top-products-head">
+          <p class="section-title" style="margin:0;">Produk Terlaris</p>
+        </div>
+        <div id="top-products" class="top-products"></div>
+      </div>
+
+      <!-- Konten khusus Penjual -->
+      <div id="seller-dashboard-content" hidden>
+        <p class="section-title">Menu toko</p>
+        <div class="category-grid">
+          <button class="category-tile" id="tile-seller-produk">
+            <span class="category-icon tint-amber">📦</span>
+            <span class="category-label">Produk</span>
+          </button>
+          <button class="category-tile" id="tile-seller-pesanan">
+            <span class="category-icon tint-blue">🧾</span>
+            <span class="category-label">Pesanan</span>
+          </button>
+          <button class="category-tile" id="tile-seller-toko">
+            <span class="category-icon tint-green">🏬</span>
+            <span class="category-label">Toko Saya</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KATEGORI (PEMBELI) ================= -->
+  <section id="screen-category" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-dashboard">←</button>
+      <h1 class="location" id="category-title">Warung</h1>
+    </header>
+    <div id="category-list" class="store-list"></div>
+  </section>
+
+  <!-- ================= DETAIL TOKO (PEMBELI) ================= -->
+  <section id="screen-buyer-store" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-category">←</button>
+      <div>
+        <h1 class="location" id="buyer-store-name">Nama Toko</h1>
+        <p class="eyebrow" id="buyer-store-address">Alamat</p>
+      </div>
+    </header>
+    <div id="buyer-store-products" class="product-view-list"></div>
+
+    <button id="btn-go-checkout" class="cart-bar" hidden>
+      <span id="checkout-cart-count">0 item</span>
+      <span id="checkout-cart-total">Rp 0</span>
+      <span class="cart-arrow">Checkout →</span>
+    </button>
+  </section>
+
+  <!-- ================= DETAIL PRODUK (PEMBELI) ================= -->
+  <section id="screen-product-detail" class="screen product-detail-screen">
+    <div id="detail-hero" class="detail-hero">
+      <button class="back back-floating" data-back="screen-buyer-store">←</button>
+      <span class="detail-hero-emoji" id="detail-hero-emoji">🍔</span>
+    </div>
+    <div class="detail-sheet">
+      <p class="detail-store" id="detail-store-name">Nama Toko</p>
+      <div class="detail-title-row">
+        <h1 class="detail-name" id="detail-product-name">Nama Produk</h1>
+        <p class="detail-price" id="detail-product-price">Rp 0</p>
+      </div>
+      <p class="detail-stock" id="detail-product-stock">Stok: 0</p>
+
+      <div class="detail-footer">
+        <div class="qty-control">
+          <button class="qty-btn minus" id="detail-qty-minus">−</button>
+          <span class="qty-value" id="detail-qty-value">1</span>
+          <button class="qty-btn add" id="detail-qty-add">+</button>
+        </div>
+        <button class="primary-btn detail-add-btn" id="btn-detail-add-to-cart">
+          Tambah ke Keranjang · <span id="detail-add-total">Rp 0</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHECKOUT (PEMBELI) ================= -->
+  <section id="screen-checkout" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-buyer-store">←</button>
+      <h1 class="location">Checkout</h1>
+    </header>
+
+    <p class="section-title">Ringkasan pesanan</p>
+    <div id="checkout-items" class="cart-items"></div>
+    <div class="summary">
+      <div class="summary-row"><span>Subtotal</span><span id="checkout-subtotal">Rp 0</span></div>
+    </div>
+
+    <p class="section-title">Data penerima</p>
+    <div class="form-group">
+      <label>Nama</label>
+      <input type="text" id="checkout-name" placeholder="Nama lengkap">
+    </div>
+    <div class="form-group">
+      <label>No. HP</label>
+      <input type="tel" id="checkout-phone" placeholder="08xxxxxxxxxx">
+    </div>
+    <div class="form-group">
+      <label>Alamat pengiriman</label>
+      <input type="text" id="checkout-address" placeholder="Alamat lengkap" readonly>
+    </div>
+    <div class="form-group">
+      <label>Lokasi pengiriman</label>
+      <button type="button" id="btn-open-checkout-location" class="location-pick-btn">
+        <span class="location-pick-icon">📍</span>
+        <span class="location-pick-text">
+          <span class="location-pick-title">Pilih Lokasi Pengiriman</span>
+          <span class="location-pick-sub" id="checkout-location-preview-sub">Atur pin lokasi &amp; hitung ongkir</span>
+        </span>
+        <span class="location-pick-chevron">›</span>
+      </button>
+    </div>
+
+    <p class="section-title">Metode pembayaran</p>
+    <div id="checkout-payment-options" class="payment-options"></div>
+
+    <div class="card total-card">
+      <div class="summary-row total"><span>Total Bayar</span><span id="checkout-total">Rp 0</span></div>
+    </div>
+
+    <p id="checkout-error" class="form-error" hidden></p>
+    <button id="btn-confirm-order" class="primary-btn">Konfirmasi Bayar</button>
+  </section>
+
+  <!-- ================= PILIH LOKASI (dipakai bersama: pengiriman Pembeli & pengambilan Penjual) ================= -->
+  <!-- Peta hanya dimuat saat layar ini dibuka (lewat tombol "Pilih Lokasi..."), supaya tidak boros kuota. -->
+  <section id="screen-location-picker" class="screen">
+    <header class="topbar with-back">
+      <button class="back" id="btn-lp-back">←</button>
+      <h1 class="location" id="lp-title">Pilih Lokasi</h1>
+    </header>
+
+    <div class="form-group">
+      <label>Cari alamat</label>
+      <input type="text" id="lp-search" placeholder="Ketik nama jalan/lokasi..." autocomplete="off">
+      <div id="lp-suggestions" class="suggestions-list"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="map-label-row">
+        <label style="margin:0;">Geser pin / klik peta</label>
+        <button type="button" id="btn-lp-locate-me" class="locate-btn">📍 Lokasi saya</button>
+      </div>
+      <div id="lp-map" class="map-picker"></div>
+      <p class="map-coord-readout" id="lp-address-readout">Menentukan lokasi...</p>
+    </div>
+
+    <div id="lp-ongkir-section" hidden>
+      <p class="section-title">Ongkos kirim</p>
+      <div class="card">
+        <div class="summary-row"><span>Jarak tempuh</span><span id="lp-distance">Belum dihitung</span></div>
+        <div class="summary-row"><span>Estimasi waktu</span><span id="lp-duration">—</span></div>
+        <div class="summary-row"><span>Ongkir</span><span id="lp-fee">Rp 0</span></div>
+      </div>
+      <p id="lp-route-error" class="form-error" hidden></p>
+      <div id="lp-route-map" class="map-picker" hidden></div>
+    </div>
+
+    <button id="btn-lp-save" class="primary-btn">Simpan Lokasi</button>
+  </section>
+
+  <!-- ================= PESANAN SAYA (PEMBELI) ================= -->
+  <section id="screen-buyer-orders" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-dashboard">←</button>
+      <h1 class="location">Pesanan Saya</h1>
+    </header>
+    <div id="buyer-order-rows" class="order-table"></div>
+  </section>
+
+  <!-- ================= DETAIL PESANAN & RUTE PENGIRIMAN (PEMBELI) ================= -->
+  <section id="screen-buyer-order-detail" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-buyer-orders">←</button>
+      <h1 class="location" id="bod-order-number">#000000</h1>
+    </header>
+
+    <p class="section-title" style="margin-top:0;" id="bod-store-name">Nama Toko</p>
+
+    <div class="tracking-route" id="bod-tracking-route">
+      <div class="tracking-step" data-step="PROSES">
+        <span class="tracking-dot"></span>
+        <div class="tracking-body">
+          <p class="tracking-title">Sedang diproses</p>
+          <p class="tracking-desc">Toko sedang menyiapkan pesananmu</p>
+        </div>
+      </div>
+      <div class="tracking-step" data-step="KIRIM">
+        <span class="tracking-dot"></span>
+        <div class="tracking-body">
+          <p class="tracking-title">Dikirim</p>
+          <p class="tracking-desc">Pesanan dalam perjalanan ke alamatmu</p>
+        </div>
+      </div>
+      <div class="tracking-step" data-step="SELESAI">
+        <span class="tracking-dot"></span>
+        <div class="tracking-body">
+          <p class="tracking-title">Konfirmasi Paket</p>
+          <p class="tracking-desc" id="bod-received-desc">Tunggu paket sampai, lalu konfirmasi di sini</p>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-confirm-package" class="primary-btn" hidden>✅ Konfirmasi Paket Diterima</button>
+    <p id="bod-confirmed-note" class="form-success" hidden></p>
+
+    <button type="button" id="bod-chat-btn" class="chat-btn">💬 Chat dengan Toko</button>
+  </section>
+
+  <!-- ================= CHAT PESANAN ================= -->
+  <section id="screen-order-chat" class="screen chat-screen">
+    <header class="topbar with-back">
+      <button class="back" id="btn-chat-back">←</button>
+      <div>
+        <h1 class="location" id="chat-order-number">#000000</h1>
+        <p class="eyebrow" id="chat-other-party">Lawan bicara</p>
+      </div>
+    </header>
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Tulis pesan..." autocomplete="off">
+      <button id="btn-chat-send" class="chat-send-btn">➤</button>
+    </div>
+  </section>
+
+  <!-- ================= PRODUK (PENJUAL) — daftar ================= -->
+  <section id="screen-seller-products" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-dashboard">←</button>
+      <h1 class="location">Produk Saya</h1>
+    </header>
+
+    <button id="btn-add-product-row" class="dashboard-menu-btn full">+ Tambahkan Produk</button>
+
+    <div id="seller-product-rows" class="product-list"></div>
+  </section>
+
+  <!-- ================= PRODUK (PENJUAL) — edit ================= -->
+  <section id="screen-seller-product-edit" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-seller-products">←</button>
+      <h1 class="location" id="product-edit-title">Produk</h1>
+    </header>
+
+    <div class="form-group">
+      <label>Nama Produk</label>
+      <input type="text" id="pe-name" placeholder="Nama produk" disabled>
+    </div>
+
+    <div class="form-group">
+      <label>Foto Produk <span class="hint">(3 slide)</span></label>
+      <div class="photo-slide" id="pe-photo-slide">
+        <label class="photo-slot" data-slot="0">
+          <input type="file" accept="image/*" class="photo-input" data-slot="0" disabled hidden>
+          <span class="photo-placeholder">+</span>
+          <img class="photo-preview" hidden>
+        </label>
+        <label class="photo-slot" data-slot="1">
+          <input type="file" accept="image/*" class="photo-input" data-slot="1" disabled hidden>
+          <span class="photo-placeholder">+</span>
+          <img class="photo-preview" hidden>
+        </label>
+        <label class="photo-slot" data-slot="2">
+          <input type="file" accept="image/*" class="photo-input" data-slot="2" disabled hidden>
+          <span class="photo-placeholder">+</span>
+          <img class="photo-preview" hidden>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Deskripsi</label>
+      <textarea id="pe-description" rows="3" placeholder="Deskripsi produk" disabled></textarea>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-group">
+        <label>Harga Jual (Rp)</label>
+        <input type="number" id="pe-price" placeholder="0" disabled>
+      </div>
+      <div class="form-group">
+        <label>Qty</label>
+        <input type="number" id="pe-stock" placeholder="0" disabled>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Diskon (%)</label>
+      <input type="number" id="pe-discount" placeholder="0" min="0" max="100" disabled>
+    </div>
+
+    <div class="form-group">
+      <label>Metode Bayar</label>
+      <div class="payment-checkbox-group">
+        <label class="payment-checkbox"><input type="checkbox" id="pe-pay-qris" disabled> QRIS</label>
+        <label class="payment-checkbox"><input type="checkbox" id="pe-pay-transfer" disabled> Transfer Bank</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="active-check"><input type="checkbox" id="pe-active" disabled checked> Aktif dijual</label>
+    </div>
+
+    <p id="product-edit-error" class="form-error" hidden></p>
+    <p id="product-edit-success" class="form-success" hidden></p>
+
+    <button id="btn-delete-product" class="primary-btn ghost" hidden>Hapus Produk</button>
+    <div class="form-footer-row">
+      <button id="btn-toggle-edit-product" class="secondary-btn full">Edit Produk</button>
+      <button id="btn-save-product" class="primary-btn" hidden>Simpan Produk</button>
+    </div>
+  </section>
+
+  <!-- ================= PESANAN (PENJUAL) ================= -->
+  <section id="screen-seller-orders" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-dashboard">←</button>
+      <h1 class="location">Pesanan Masuk</h1>
+    </header>
+    <div id="seller-order-rows" class="order-table"></div>
+  </section>
+
+  <!-- ================= TOKO SAYA (PENJUAL) ================= -->
+  <section id="screen-seller-store" class="screen">
+    <header class="topbar with-back">
+      <button class="back" data-back="screen-dashboard">←</button>
+      <h1 class="location" id="seller-store-title">Toko Saya</h1>
+    </header>
+    <p class="eyebrow" style="margin-bottom: 14px;">Begini tampilan tokomu di mata pembeli</p>
+    <div id="seller-store-products" class="product-view-list"></div>
+  </section>
+
+  <!-- ================= PROFIL (overlay) ================= -->
+  <div id="profile-overlay" class="overlay" hidden>
+    <div class="profile-sheet">
+      <div class="sheet-handle"></div>
+      <div class="topbar">
+        <h1 class="location">Profil Saya</h1>
+        <button class="icon-btn" id="btn-close-profile">✕</button>
+      </div>
+
+      <div id="profile-fields-buyer">
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" id="profile-name" disabled>
+        </div>
+        <div class="form-group">
+          <label>No. HP</label>
+          <input type="tel" id="profile-phone" disabled>
+        </div>
+      </div>
+
+      <div id="profile-fields-seller" hidden>
+        <div class="form-group">
+          <label>Nama Toko</label>
+          <input type="text" id="profile-store-name" disabled>
+        </div>
+        <div class="form-group">
+          <label>Jenis Toko</label>
+          <select id="profile-category" disabled>
+            <option value="warung">Warung</option>
+            <option value="resto">Resto</option>
+            <option value="toko">Toko</option>
+            <option value="apotek">Apotek</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nama Pemilik</label>
+          <input type="text" id="profile-owner-name" disabled>
+        </div>
+        <div class="form-group">
+          <label>Alamat</label>
+          <input type="text" id="profile-address" disabled>
+        </div>
+        <div class="form-group">
+          <label>Lokasi Toko</label>
+          <button type="button" id="btn-open-profile-location" class="location-pick-btn" disabled>
+            <span class="location-pick-icon">📍</span>
+            <span class="location-pick-text">
+              <span class="location-pick-title">Pilih Lokasi Pengambilan</span>
+              <span class="location-pick-sub" id="profile-location-preview-sub">Titik lokasi belum diatur</span>
+            </span>
+            <span class="location-pick-chevron">›</span>
+          </button>
+        </div>
+        <div class="form-group">
+          <label>No. HP</label>
+          <input type="tel" id="profile-seller-phone" disabled>
+        </div>
+        <div class="form-group">
+          <label>Jenis Pembayaran yang diterima</label>
+          <div class="payment-checkbox-group">
+            <label class="payment-checkbox"><input type="checkbox" id="profile-payment-qris" disabled> QRIS</label>
+            <label class="payment-checkbox"><input type="checkbox" id="profile-payment-transfer" disabled> Transfer Bank</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="profile-email" disabled>
+      </div>
+      <div class="form-group">
+        <label>Password baru <span class="hint">(kosongkan jika tidak diubah)</span></label>
+        <input type="password" id="profile-new-password" placeholder="••••••••" disabled>
+      </div>
+      <div class="form-group" id="profile-current-password-group" hidden>
+        <label>Password saat ini <span class="hint">(untuk konfirmasi perubahan)</span></label>
+        <input type="password" id="profile-current-password" placeholder="Diperlukan untuk simpan perubahan">
+      </div>
+
+      <p id="profile-error" class="form-error" hidden></p>
+      <p id="profile-success" class="form-success" hidden></p>
+
+      <button id="btn-edit-profile" class="secondary-btn full">Edit Profil</button>
+      <button id="btn-save-profile" class="primary-btn" hidden>Simpan Perubahan</button>
+      <button id="btn-logout" class="primary-btn ghost">Keluar</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

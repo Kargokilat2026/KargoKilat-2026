@@ -1,0 +1,25 @@
+{
+  "name": "Kargo Kilat",
+  "short_name": "Kargo Kilat",
+  "description": "Belanja sampai dalam hitungan menit",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./assets/kargo-kilat-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/kargo-kilat-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
